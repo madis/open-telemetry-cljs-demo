@@ -1,0 +1,6 @@
+{:paths ["src"]
+ :deps {macchiato/core {:mvn/version "0.2.24"}}
+ :aliases
+ {:shadow-cljs
+  {:extra-deps {thheller/shadow-cljs {:mvn/version "2.28.2"}},
+   :main-opts ["-m" "shadow.cljs.devtools.cli"]}}}

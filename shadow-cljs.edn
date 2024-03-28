@@ -1,0 +1,10 @@
+{:nrepl {:port 3000}
+ :deps {:aliases [:dev]}
+ :builds
+ {:api {:target :node-script
+        :devtools {:repl-init-ns rest-api.core
+                   :before-load-async rest-api.core/stop
+                   :after-load rest-api.core/start}
+        :main rest-api.core/main
+        :output-to "out/rest_api.js"
+        :autorun true}}}
