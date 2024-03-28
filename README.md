@@ -25,6 +25,17 @@ Context uses the
 [Zone.js](https://github.com/angular/angular/blob/HEAD/packages/zone.js/lib/zone.ts)
 from Angular to remember the execution context between asynchronous calls.
 
+## The fix
+
+In Clojurians Slack Thomas Heller (author of shadow-cljs) was so kind to point me to his alternative
+implementation of the `go` macro that he had used previously to resolve a similar problem.
+
+- The issue was: https://github.com/clojure/core.async/blob/aa6b951301fbdcf5a13cdaaecb4b1a908dc8a978/src/main/clojure/cljs/core/async.clj#L24
+- The slack thread: https://clojurians.slack.com/archives/C03S1L9DN/p1711645242187789
+- The original clojure topic: https://clojure.atlassian.net/browse/ASYNC-131
+
+## Examples
+
 ### ✅ Example 1: `rest-api.tracing.demo/test-nested-simple` (works as expected)
 
 Output of calling `(rest-api.tracing.demo/test-nested-simple)` in the REPL

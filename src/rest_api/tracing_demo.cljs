@@ -1,31 +1,32 @@
 (ns rest-api.tracing-demo
   (:require
     [clojure.core.async :refer [go <!]]
+    [rest-api.macros :refer-macros [go!]]
     [rest-api.tracing :as t-setup]
     [rest-api.tracing-utils :as t-utils]))
 
 (defn do-more-work [span]
-  (go
+  (go!
     (println ">>> 3. inner")
     (t-utils/set-span-ok! span)
     (t-utils/end-span! span)))
 
 (defn do-db-work [span]
-  (go
+  (go!
     (println ">>> 2. middle")
     (t-utils/start-active-span "inner" do-more-work)
     (t-utils/set-span-ok! span)
     (t-utils/end-span! span)))
 
 (defn do-resolver-work [span]
-  (go
+  (go!
     (println ">>> 1. outer")
     (t-utils/start-active-span "middle" do-db-work)
     (t-utils/set-span-ok! span)
     (t-utils/end-span! span)))
 
 (defn test-nested-in-separate-function []
-  (go
+  (go!
     (println ">>> test-nested-in-separate-function")
     (<! (t-utils/start-active-span "outer" do-resolver-work))))
 
@@ -49,16 +50,16 @@
 
 (defn test-nested-go-block []
   (println ">>> test-nested-go-block")
-  (go
+  (go!
     (t-utils/start-active-span
      "outer"
      (fn [span]
-       (go
+       (go!
          (println ">>> outer")
          (t-utils/start-active-span
            "middle"
            (fn [span]
-             (go
+             (go!
                (println ">>> middle")
                (t-utils/start-active-span
                  "inner"
