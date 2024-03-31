@@ -68,3 +68,61 @@
                    (t-utils/end-span! span)))
                (t-utils/end-span! span)))))
        (t-utils/end-span! span)))))
+
+
+(defn test-context-with
+  "Example that doesn't require modifying the callback (nested span's
+  implementation) argument list to change. Because the span in the context
+(parent) gets set manually with `set-span-context!`"
+  []
+  (println ">>> test-context-with")
+  (go!
+    (let [span (t-utils/start-span "outer")]
+      (println ">>> outer")
+      (t-utils/with-span-context span
+        (fn []
+          (go!
+            (let [span (t-utils/start-span "middle")]
+              (println ">>> middle")
+              (t-utils/with-span-context span
+                (fn []
+                  (go!
+                    (let [span (t-utils/start-span "inner")]
+                      (println ">>> inner")
+                      (t-utils/end-span! span)))))
+              (t-utils/end-span! span)))))
+      (t-utils/end-span! span))))
+
+(defn inner [{:keys [error?]}]
+  (go!
+    (let [span (t-utils/start-span "inner")]
+      (println ">>> inner failing?" error?)
+      (t-utils/set-span-ok! span)
+      (try
+        (when error? (throw (js/Error "I was told to throw") ))
+      (catch js/Error e
+        (t-utils/set-span-error! span e "Interesting situation"))
+      (finally
+        (t-utils/set-span-attributes! span {"survival_probability" (rand-int 100)})))
+      (t-utils/end-span! span))))
+
+(defn middle []
+  (go!
+    (t-utils/start-active-span
+      "middle"
+      (fn [span]
+        (println ">>> middle")
+        (inner {:error? true})
+        (inner {:error? false})
+        (t-utils/end-span! span)))))
+
+(defn outer []
+  (go!
+    (let [active-span (t-utils/get-active-span)]
+      (println ">>> outer active-span:" active-span)
+      (middle)
+      (middle)
+      (t-utils/end-span! active-span))))
+
+(defn test-instrumentation []
+  (t-utils/start-active-span "outer" (fn [span] (outer))))

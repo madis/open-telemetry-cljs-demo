@@ -2,6 +2,8 @@
   (:require
     ["@opentelemetry/sdk-node" :refer [NodeSDK]]
     ["@opentelemetry/sdk-trace-node" :refer [ConsoleSpanExporter]]
+    ["@opentelemetry/exporter-trace-otlp-http" :refer [OTLPTraceExporter]]
+
     ["@opentelemetry/sdk-metrics" :refer [PeriodicExportingMetricReader
                                           ConsoleMetricExporter]]
     ["@opentelemetry/resources" :refer [Resource]]
@@ -9,6 +11,12 @@
                                                    SEMRESATTRS_SERVICE_VERSION]]
     ["@opentelemetry/api" :refer [trace]]))
 
+(def signoz-config
+  {:url "https://ingest.us.signoz.cloud:443/v1/traces"
+   :headers {"signoz-access-token" "<your-token>"}})
+
+(defn get-http-trace-exporter []
+  (new OTLPTraceExporter (clj->js signoz-config)))
 
 (defn init-sdk [service-name service-version]
   (let [resource (new Resource (clj->js {SEMRESATTRS_SERVICE_NAME service-name
@@ -16,7 +24,7 @@
         span-exporter (new ConsoleSpanExporter)
         metric-exporter (new ConsoleMetricExporter)
         params {:resource resource
-                :traceExporter span-exporter
+                :traceExporter (get-http-trace-exporter); span-exporter
                 :metricReader (new PeriodicExportingMetricReader (clj->js {:exporter metric-exporter}))}]
     (new NodeSDK (clj->js params))))
 

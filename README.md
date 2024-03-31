@@ -15,7 +15,15 @@ Then the demo in `rest-api.tracing-demo` can be used. Following examples are to 
 (in-ns 'rest-api.tracing-demo)
 ```
 
-## The issue
+## Working example
+
+One example that demonstrates different facilities is the `rest-api.tracing-demo/test-instrumentation`. It:
+  - creates active span
+  - creates nested spans
+
+![test-instrumentation](assets/images/test-instrumentation-signoz.png)
+
+## Initial issues
 
 While it's relatively simple to integrate with OpenTelemetry JS library, the
 nested spans don't get their parent span from the `context` when using
