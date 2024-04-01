@@ -1,7 +1,7 @@
 (ns rest-api.tracing-demo
   (:require
     [clojure.core.async :refer [go <!]]
-    [rest-api.macros :refer-macros [go!]]
+    [rest-api.macros :refer-macros [go! safe-go!]]
     [rest-api.tracing :as t-setup]
     [rest-api.tracing-utils :as t-utils]))
 
@@ -106,6 +106,11 @@
         (t-utils/set-span-attributes! span {"survival_probability" (rand-int 100)})))
       (t-utils/end-span! span))))
 
+(defn error-in-go []
+  (safe-go!
+    (println ">>> error-in-go")
+    (throw (js/Error "This was from error-in-go"))))
+
 (defn middle []
   (go!
     (t-utils/start-active-span
@@ -114,6 +119,9 @@
         (println ">>> middle")
         (inner {:error? true})
         (inner {:error? false})
+        (t-utils/start-active-span "error-in-go" (fn [span]
+                                                   (error-in-go)
+                                                   (t-utils/end-span! span)))
         (t-utils/end-span! span)))))
 
 (defn outer []

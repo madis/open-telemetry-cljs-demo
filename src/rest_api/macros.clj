@@ -10,3 +10,12 @@
                     (ioc/aset-all! cljs.core.async.impl.ioc-helpers/USER-START-IDX c#))]
      (cljs.core.async.impl.ioc-helpers/run-state-machine state#)
      c#))
+
+(defmacro safe-go! [& body]
+  `(go!
+     (try
+       ~@body
+       (catch :default e#
+         (when-let [span# (rest-api.tracing-utils/get-active-span)]
+           (rest-api.tracing-utils/set-span-error! span# e#))
+         e#))))
